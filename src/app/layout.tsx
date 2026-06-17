@@ -13,7 +13,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "Marketing Management System",
-  description: "Sistem manajemen marketing untuk tim konsultan perusahaan",
+  description: "Sistem Manajemen Marketing",
 };
 
 export default function RootLayout({
