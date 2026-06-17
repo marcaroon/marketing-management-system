@@ -75,7 +75,7 @@ export function Sidebar() {
         {!isCollapsed && (
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 shadow-md">
-              <span className="text-sm font-bold text-white">M</span>
+              <span className="text-sm font-bold text-white">TQ</span>
             </div>
             <div className="flex flex-col">
               <span className="text-sm font-semibold text-foreground">Marketing</span>
@@ -85,7 +85,7 @@ export function Sidebar() {
         )}
         {isCollapsed && (
           <div className="mx-auto flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 shadow-md">
-            <span className="text-sm font-bold text-white">M</span>
+            <span className="text-sm font-bold text-white">TQ</span>
           </div>
         )}
       </div>

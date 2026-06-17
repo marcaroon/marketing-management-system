@@ -24,7 +24,7 @@ export default function DashboardLayout({
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 shadow-lg">
-            <span className="text-xl font-bold text-white">M</span>
+            <span className="text-xl font-bold text-white">TQ</span>
           </div>
           <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
           <p className="text-sm text-muted-foreground">Memuat...</p>

@@ -60,19 +60,19 @@ export default function LoginPage() {
         </div>
 
         <div className="relative z-10 flex flex-1 flex-col justify-center px-12 xl:px-16">
-          <div className="mb-8 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-sm shadow-lg">
-            <span className="text-2xl font-bold text-white">M</span>
-          </div>
+          {/* <div className="mb-8 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-sm shadow-lg">
+            <span className="text-2xl font-bold text-white">TQ</span>
+          </div> */}
           <h1 className="text-4xl font-bold leading-tight text-white xl:text-5xl">
             Marketing<br />Management<br />System
           </h1>
-          <p className="mt-4 max-w-md text-base text-blue-100/80 leading-relaxed">
+          {/* <p className="mt-4 max-w-md text-base text-blue-100/80 leading-relaxed">
             Kelola prospek, klien, dan event marketing perusahaan konsultan Anda
             secara efisien dalam satu platform terpadu.
-          </p>
+          </p> */}
 
           {/* Feature highlights */}
-          <div className="mt-10 grid grid-cols-2 gap-4">
+          {/* <div className="mt-10 grid grid-cols-2 gap-4">
             {[
               { title: "Prospek & Klien", desc: "Pendataan dan monitoring" },
               { title: "Event Marketing", desc: "BG & BV management" },
@@ -87,7 +87,7 @@ export default function LoginPage() {
                 <p className="text-xs text-blue-200/80">{feature.desc}</p>
               </div>
             ))}
-          </div>
+          </div> */}
         </div>
 
         <div className="relative z-10 px-12 pb-8 xl:px-16">
@@ -101,19 +101,19 @@ export default function LoginPage() {
       <div className="flex w-full items-center justify-center px-6 lg:w-1/2 lg:px-12">
         <div className="w-full max-w-[420px]">
           {/* Mobile logo */}
-          <div className="mb-8 flex items-center gap-3 lg:hidden">
+          {/* <div className="mb-8 flex items-center gap-3 lg:hidden">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 shadow-md">
-              <span className="text-lg font-bold text-white">M</span>
+              <span className="text-lg font-bold text-white">TQ</span>
             </div>
             <div>
-              <h2 className="text-lg font-bold text-foreground">Marketing MS</h2>
+              <h2 className="text-lg font-bold text-foreground">Marketing Management System</h2>
             </div>
-          </div>
+          </div> */}
 
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-foreground">Masuk ke akun Anda</h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Gunakan email kantor dan password untuk masuk ke sistem.
+              Gunakan email dan password untuk masuk ke sistem.
             </p>
           </div>
 
@@ -195,9 +195,9 @@ export default function LoginPage() {
             </form>
           </Form>
 
-          <p className="mt-8 text-center text-xs text-muted-foreground">
+          {/* <p className="mt-8 text-center text-xs text-muted-foreground">
             Hubungi admin jika Anda belum memiliki akun atau lupa password.
-          </p>
+          </p> */}
         </div>
       </div>
     </div>
