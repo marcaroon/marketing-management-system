@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -18,6 +18,16 @@ import { ArrowLeft, MapPin, Calendar, Users, Plus, Trash2, Edit } from "lucide-r
 import { ParticipantForm } from "@/components/events/participant-form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function EventDetailPage() {
   const params = useParams();
@@ -31,19 +41,21 @@ export default function EventDetailPage() {
   const [event, setEvent] = useState<MarketingEvent | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [deleteParticipant, setDeleteParticipant] = useState<{ id: string; status: ParticipantAttendance } | null>(null);
+  const [isDeletingParticipant, setIsDeletingParticipant] = useState(false);
 
-  const loadEvent = async () => {
+  const loadEvent = useCallback(async () => {
     if (eventId) {
       const data = await getEvent(eventId);
       setEvent(data);
       setIsLoading(false);
     }
-  };
+  }, [eventId, getEvent]);
 
   useEffect(() => {
     loadEvent();
     fetchParticipants();
-  }, [eventId]);
+  }, [loadEvent, fetchParticipants]);
 
   const handleParticipantAdded = () => {
     loadEvent(); // Refresh event stats
@@ -54,10 +66,15 @@ export default function EventDetailPage() {
     loadEvent(); // Refresh event stats
   };
 
-  const handleDeleteParticipant = async (participantId: string, status: ParticipantAttendance) => {
-    if (window.confirm("Apakah Anda yakin ingin menghapus peserta ini?")) {
-      await removeParticipant(participantId, status);
+  const handleConfirmDeleteParticipant = async () => {
+    if (!deleteParticipant) return;
+    setIsDeletingParticipant(true);
+    try {
+      await removeParticipant(deleteParticipant.id, deleteParticipant.status);
       loadEvent(); // Refresh event stats
+    } finally {
+      setIsDeletingParticipant(false);
+      setDeleteParticipant(null);
     }
   };
 
@@ -177,7 +194,12 @@ export default function EventDetailPage() {
                         </Select>
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600 hover:bg-red-100 dark:hover:bg-red-900/50" onClick={() => handleDeleteParticipant(p.id, p.attendanceStatus)}>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-red-500 hover:text-red-600 hover:bg-red-100 dark:hover:bg-red-900/50"
+                          onClick={() => setDeleteParticipant({ id: p.id, status: p.attendanceStatus })}
+                        >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </TableCell>
@@ -196,6 +218,28 @@ export default function EventDetailPage() {
         onClose={() => setIsFormOpen(false)} 
         onSuccess={handleParticipantAdded} 
       />
+
+      {/* Delete Participant Confirmation */}
+      <AlertDialog open={!!deleteParticipant} onOpenChange={() => setDeleteParticipant(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hapus Peserta?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Apakah Anda yakin ingin menghapus peserta ini? Tindakan ini tidak dapat dibatalkan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeletingParticipant}>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDeleteParticipant}
+              disabled={isDeletingParticipant}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isDeletingParticipant ? "Menghapus..." : "Hapus"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

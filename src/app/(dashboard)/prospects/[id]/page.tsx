@@ -13,6 +13,7 @@ import { StatusBadge, PriorityBadge, AttendanceBadge } from "@/components/prospe
 import { ConvertToClientDialog } from "@/components/prospects/convert-to-client-dialog";
 import { useProspects } from "@/hooks/use-prospects";
 import { useAuth } from "@/hooks/use-auth";
+import { useActivities } from "@/hooks/use-activities";
 import { formatTimestamp } from "@/lib/firebase/firestore";
 import { LEAD_SOURCE_OPTIONS } from "@/lib/constants";
 import { Prospect } from "@/types";
@@ -45,7 +46,8 @@ export default function ProspectDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { getProspect, removeProspect } = useProspects();
-  const { canEdit, canDelete } = useAuth();
+  const { user, canEdit, canDelete } = useAuth();
+  const { logActivity } = useActivities();
   const [prospect, setProspect] = useState<Prospect | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showConvertDialog, setShowConvertDialog] = useState(false);
@@ -63,8 +65,17 @@ export default function ProspectDetailPage() {
   }, [params.id]);
 
   const handleDelete = async () => {
-    if (!prospect) return;
+    if (!prospect || !user) return;
     await removeProspect(prospect.id);
+    await logActivity(
+      user.uid,
+      user.displayName,
+      "deleted_prospect",
+      "prospect",
+      prospect.id,
+      prospect.companyName,
+      `menghapus prospek ${prospect.companyName}`
+    );
     router.push("/prospects");
   };
 

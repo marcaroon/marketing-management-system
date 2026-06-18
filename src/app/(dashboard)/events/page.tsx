@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/shared/page-header";
 import { useEvents } from "@/hooks/use-events";
 import { useAuth } from "@/hooks/use-auth";
+import { useActivities } from "@/hooks/use-activities";
 import { formatTimestamp } from "@/lib/firebase/firestore";
 import { EVENT_TYPE_OPTIONS } from "@/lib/constants";
 import { MarketingEvent } from "@/types";
@@ -19,12 +20,25 @@ import {
 
 export default function EventsPage() {
   const { events, isLoading, removeEvent } = useEvents();
-  const { isAdmin, canManageEvent } = useAuth();
+  const { user, isAdmin, canManageEvent } = useAuth();
+  const { logActivity } = useActivities();
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const handleDelete = async () => {
-    if (deleteId) {
+    if (deleteId && user) {
+      const event = events.find((e) => e.id === deleteId);
       await removeEvent(deleteId);
+      if (event) {
+        await logActivity(
+          user.uid,
+          user.displayName,
+          "deleted_event",
+          "event",
+          deleteId,
+          event.title,
+          `menghapus event ${event.title}`
+        );
+      }
       setDeleteId(null);
     }
   };

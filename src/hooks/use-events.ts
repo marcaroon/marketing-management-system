@@ -67,6 +67,16 @@ export function useEvents() {
 
   const removeEvent = async (id: string) => {
     try {
+      // Cascade delete: remove all participants for this event first
+      const participants = await getDocuments(COLLECTIONS.PARTICIPANTS, [
+        where("eventId", "==", id),
+      ]);
+      const deletePromises = participants.map((p) =>
+        deleteDocument(COLLECTIONS.PARTICIPANTS, p.id)
+      );
+      await Promise.all(deletePromises);
+
+      // Now delete the event document
       await deleteDocument(COLLECTIONS.EVENTS, id);
       toast.success("Event berhasil dihapus");
       await fetchEvents();

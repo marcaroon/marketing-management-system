@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/shared/page-header";
@@ -16,6 +17,7 @@ import interactionPlugin from "@fullcalendar/interaction";
 import listPlugin from "@fullcalendar/list";
 
 export default function CalendarPage() {
+  const router = useRouter();
   const { prospects, isLoading: pLoading } = useProspects();
   const { events, isLoading: eLoading } = useEvents();
   const { clients, isLoading: cLoading } = useClients();
@@ -110,7 +112,7 @@ export default function CalendarPage() {
                 eventClick={(info) => {
                   info.jsEvent.preventDefault();
                   if (info.event.url) {
-                    window.location.href = info.event.url;
+                    router.push(info.event.url);
                   }
                 }}
                 height="auto"

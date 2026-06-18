@@ -21,6 +21,7 @@ import { exportReportToPDF, exportReportToExcel } from "@/lib/export-utils";
 import { FileDown, FileSpreadsheet, Download } from "lucide-react";
 
 const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#ef4444", "#06b6d4", "#f97316"];
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
 
 export default function ReportsPage() {
   const { isAdmin } = useAuth();
@@ -28,12 +29,11 @@ export default function ReportsPage() {
   const { clients, isLoading: cLoading } = useClients();
   const { events, isLoading: eLoading } = useEvents();
 
-  const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
   const currentYear = new Date().getFullYear();
 
   // Monthly prospects
   const monthlyData = useMemo(() => {
-    return months.map((m, i) => {
+    return MONTHS.map((m, i) => {
       const monthProspects = prospects.filter((p) => {
         if (!p.createdAt) return false;
         const d = p.createdAt.toDate();
@@ -46,7 +46,7 @@ export default function ReportsPage() {
 
   // Closing rate
   const closingRate = useMemo(() => {
-    return months.map((m, i) => {
+    return MONTHS.map((m, i) => {
       const total = monthlyData[i].prospek;
       const closing = monthlyData[i].closing;
       return { name: m, rate: total > 0 ? Math.round((closing / total) * 100) : 0 };

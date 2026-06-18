@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import { StatsCards } from "@/components/dashboard/stats-cards";
 import { ProspectChart } from "@/components/dashboard/prospect-chart";
 import { MarketingProgress } from "@/components/dashboard/marketing-progress";
@@ -13,20 +13,30 @@ import { useEvents } from "@/hooks/use-events";
 import { useActivities } from "@/hooks/use-activities";
 import { useAuth } from "@/hooks/use-auth";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Timestamp } from "firebase/firestore";
 
 export default function DashboardPage() {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { prospects, isLoading: prospectsLoading } = useProspects();
   const { clients, isLoading: clientsLoading } = useClients();
   const { events, isLoading: eventsLoading } = useEvents();
   const { activities, isLoading: activitiesLoading } = useActivities(10);
 
-  // Calculate stats
-  const totalProspects = prospects.length;
+  // Scope data based on user role: marketing users see only their own data
+  const scopedProspects = useMemo(() => {
+    if (isAdmin || !user) return prospects;
+    return prospects.filter((p) => p.createdBy === user.uid);
+  }, [prospects, isAdmin, user]);
+
+  const scopedEvents = useMemo(() => {
+    if (isAdmin || !user) return events;
+    return events.filter((e) => e.createdBy === user.uid);
+  }, [events, isAdmin, user]);
+
+  // Calculate stats using scoped data
+  const totalProspects = scopedProspects.length;
   const totalClients = clients.length;
 
-  const closingThisMonth = prospects.filter((p) => {
+  const closingThisMonth = scopedProspects.filter((p) => {
     if (p.status !== "closing" || !p.updatedAt) return false;
     const now = new Date();
     const updated = p.updatedAt.toDate();
@@ -36,7 +46,7 @@ export default function DashboardPage() {
     );
   }).length;
 
-  const upcomingEvents = events.filter((e) => {
+  const upcomingEvents = scopedEvents.filter((e) => {
     if (!e.date) return false;
     return e.date.toDate() >= new Date();
   }).length;
@@ -56,7 +66,11 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <PageHeader
         title={`${getGreeting()}, ${user?.displayName?.split(" ")[0] || "User"}! 👋`}
-        description="Berikut ringkasan aktivitas marketing Anda hari ini."
+        description={
+          isAdmin
+            ? "Berikut ringkasan aktivitas marketing seluruh tim."
+            : "Berikut ringkasan aktivitas marketing Anda hari ini."
+        }
       />
 
       {/* Stats Cards */}
@@ -84,8 +98,8 @@ export default function DashboardPage() {
           </>
         ) : (
           <>
-            <MarketingProgress prospects={prospects} />
-            <ProspectChart prospects={prospects} />
+            <MarketingProgress prospects={scopedProspects} />
+            <ProspectChart prospects={scopedProspects} />
           </>
         )}
       </div>
@@ -99,7 +113,7 @@ export default function DashboardPage() {
           </>
         ) : (
           <>
-            <FollowUpReminder prospects={prospects} />
+            <FollowUpReminder prospects={scopedProspects} />
             <RecentActivity activities={activities} />
           </>
         )}

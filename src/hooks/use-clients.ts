@@ -9,6 +9,13 @@ import {
   getDocument,
   orderBy,
 } from "@/lib/firebase/firestore";
+import {
+  collection,
+  getDocs,
+  deleteDoc,
+  doc,
+} from "firebase/firestore";
+import { db } from "@/lib/firebase/config";
 import { COLLECTIONS } from "@/lib/constants";
 import { Client } from "@/types";
 import { toast } from "sonner";
@@ -34,9 +41,10 @@ export function useClients() {
 
   const addClient = async (data: Omit<Client, "id" | "createdAt" | "updatedAt">) => {
     try {
-      await addDocument(COLLECTIONS.CLIENTS, data);
+      const id = await addDocument(COLLECTIONS.CLIENTS, data);
       toast.success("Klien berhasil ditambahkan");
       await fetchClients();
+      return id;
     } catch (error) {
       console.error("Error adding client:", error);
       toast.error("Gagal menambahkan klien");
@@ -58,6 +66,15 @@ export function useClients() {
 
   const removeClient = async (id: string) => {
     try {
+      // Cascade delete: remove all timeline subcollection entries first
+      const timelineRef = collection(db, "clients", id, "timeline");
+      const timelineSnap = await getDocs(timelineRef);
+      const deletePromises = timelineSnap.docs.map((d) =>
+        deleteDoc(doc(db, "clients", id, "timeline", d.id))
+      );
+      await Promise.all(deletePromises);
+
+      // Now delete the client document
       await deleteDocument(COLLECTIONS.CLIENTS, id);
       toast.success("Klien berhasil dihapus");
       await fetchClients();

@@ -10,23 +10,51 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/shared/page-header";
 import { useTeam } from "@/hooks/use-team";
 import { useAuth } from "@/hooks/use-auth";
 import { UserProfile } from "@/types";
-import { Search, UserPlus, Shield, Mail, Phone } from "lucide-react";
+import { Search, UserPlus, Shield, Loader2 } from "lucide-react";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 
 export default function TeamPage() {
-  const { members, isLoading, updateMember } = useTeam();
+  const { members, isLoading, updateMember, addMember } = useTeam();
   const { isAdmin } = useAuth();
   const [globalFilter, setGlobalFilter] = useState("");
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [newMember, setNewMember] = useState({
+    displayName: "",
+    email: "",
+    password: "",
+    phone: "",
+    role: "marketing" as "admin" | "marketing",
+  });
+
+  const resetForm = () => {
+    setNewMember({ displayName: "", email: "", password: "", phone: "", role: "marketing" });
+  };
+
+  const handleAddMember = async () => {
+    if (!newMember.displayName.trim() || !newMember.email.trim() || !newMember.password) return;
+    setIsSubmitting(true);
+    try {
+      await addMember(newMember);
+      setIsAddDialogOpen(false);
+      resetForm();
+    } catch {
+      // Error already handled in hook
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const columns: ColumnDef<UserProfile>[] = useMemo(
     () => [
@@ -106,6 +134,9 @@ export default function TeamPage() {
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    initialState: {
+      pagination: { pageSize: 10 },
+    },
   });
 
   if (!isAdmin) {
@@ -120,12 +151,19 @@ export default function TeamPage() {
     <div className="space-y-6">
       <PageHeader title="Tim" description="Kelola anggota tim marketing" />
 
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4">
         <div className="relative max-w-sm flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input placeholder="Cari anggota..." value={globalFilter}
             onChange={(e) => setGlobalFilter(e.target.value)} className="pl-9" />
         </div>
+        <Button
+          onClick={() => setIsAddDialogOpen(true)}
+          className="bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md shadow-blue-600/25 hover:from-blue-700 hover:to-blue-800"
+        >
+          <UserPlus className="mr-2 h-4 w-4" />
+          Tambah Anggota
+        </Button>
       </div>
 
       <div className="rounded-xl border border-border/50 bg-card">
@@ -162,6 +200,104 @@ export default function TeamPage() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Pagination */}
+      {table.getPageCount() > 1 && (
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            Halaman {table.getState().pagination.pageIndex + 1} dari {table.getPageCount()}
+          </p>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
+              Sebelumnya
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
+              Selanjutnya
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Add Member Dialog */}
+      <Dialog open={isAddDialogOpen} onOpenChange={(open) => { setIsAddDialogOpen(open); if (!open) resetForm(); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Tambah Anggota Baru</DialogTitle>
+            <DialogDescription>Buat akun baru untuk anggota tim marketing.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div>
+              <Label>Nama Lengkap *</Label>
+              <Input
+                value={newMember.displayName}
+                onChange={(e) => setNewMember((p) => ({ ...p, displayName: e.target.value }))}
+                placeholder="Nama lengkap"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label>Email *</Label>
+              <Input
+                type="email"
+                value={newMember.email}
+                onChange={(e) => setNewMember((p) => ({ ...p, email: e.target.value }))}
+                placeholder="email@perusahaan.com"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label>Password *</Label>
+              <Input
+                type="password"
+                value={newMember.password}
+                onChange={(e) => setNewMember((p) => ({ ...p, password: e.target.value }))}
+                placeholder="Minimal 6 karakter"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label>Telepon</Label>
+              <Input
+                value={newMember.phone}
+                onChange={(e) => setNewMember((p) => ({ ...p, phone: e.target.value }))}
+                placeholder="Nomor telepon"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label>Role *</Label>
+              <Select
+                value={newMember.role}
+                onValueChange={(value) => { if (value) setNewMember((p) => ({ ...p, role: value as any })); }}
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue>{(value: string) => value === "admin" ? "Admin" : "Marketing"}</SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="marketing">Marketing</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex justify-end gap-3 pt-2">
+              <Button variant="outline" onClick={() => { setIsAddDialogOpen(false); resetForm(); }} disabled={isSubmitting}>
+                Batal
+              </Button>
+              <Button
+                onClick={handleAddMember}
+                disabled={isSubmitting || !newMember.displayName.trim() || !newMember.email.trim() || !newMember.password}
+                className="bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md shadow-blue-600/25"
+              >
+                {isSubmitting ? (
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Membuat...</>
+                ) : (
+                  <><UserPlus className="mr-2 h-4 w-4" />Tambah</>
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

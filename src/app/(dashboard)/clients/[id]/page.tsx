@@ -12,6 +12,7 @@ import { ClientTimeline } from "@/components/clients/client-timeline";
 import { useClients } from "@/hooks/use-clients";
 import { useClientTimeline } from "@/hooks/use-client-timeline";
 import { useAuth } from "@/hooks/use-auth";
+import { useActivities } from "@/hooks/use-activities";
 import { formatTimestamp } from "@/lib/firebase/firestore";
 import { SERVICE_STATUS_OPTIONS } from "@/lib/constants";
 import { Client } from "@/types";
@@ -33,7 +34,8 @@ export default function ClientDetailPage() {
   const router = useRouter();
   const clientId = params.id as string;
   const { getClient, removeClient } = useClients();
-  const { isAdmin } = useAuth();
+  const { user, isAdmin } = useAuth();
+  const { logActivity } = useActivities();
   const { timeline, isLoading: timelineLoading, fetchTimeline, addTimelineEntry } = useClientTimeline(clientId);
   const [client, setClient] = useState<Client | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -52,8 +54,17 @@ export default function ClientDetailPage() {
   }, [clientId]);
 
   const handleDelete = async () => {
-    if (!client) return;
+    if (!client || !user) return;
     await removeClient(client.id);
+    await logActivity(
+      user.uid,
+      user.displayName,
+      "deleted_client",
+      "client",
+      client.id,
+      client.companyName,
+      `menghapus klien ${client.companyName}`
+    );
     router.push("/clients");
   };
 
