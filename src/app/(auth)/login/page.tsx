@@ -92,7 +92,7 @@ export default function LoginPage() {
 
         <div className="relative z-10 px-12 pb-8 xl:px-16">
           <p className="text-xs text-blue-200/60">
-            © 2026 Marketing Management System. All rights reserved.
+            © 2026 Total Quality. All rights reserved.
           </p>
         </div>
       </div>
@@ -113,7 +113,7 @@ export default function LoginPage() {
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-foreground">Masuk ke akun Anda</h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Gunakan email dan password untuk masuk ke sistem.
+              Gunakan email dan password untuk login.
             </p>
           </div>
 
@@ -133,7 +133,7 @@ export default function LoginPage() {
                     <FormLabel>Email</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="nama@perusahaan.com"
+                        placeholder="Masukkan email"
                         type="email"
                         autoComplete="email"
                         className="h-11"
