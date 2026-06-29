@@ -199,27 +199,6 @@ export const PARTICIPANT_ATTENDANCE_LABELS = Object.fromEntries(
   PARTICIPANT_ATTENDANCE_OPTIONS.map((o) => [o.value, o.label]),
 ) as Record<ParticipantAttendance, string>;
 
-// ==================== KPI ACTIVITY METRICS ====================
-export const KPI_ACTIVITY_METRIC_KEYS = [
-  "closingSign",
-  "nkMeet",
-  "eventInvited",
-  "eventConfirmed",
-  "eventAttended",
-  "eventFormFilled",
-] as const;
-
-export type KpiActivityMetricKey = (typeof KPI_ACTIVITY_METRIC_KEYS)[number];
-
-export const KPI_ACTIVITY_METRIC_LABELS: Record<KpiActivityMetricKey, string> = {
-  closingSign: "Closing/Sign",
-  nkMeet: "NK/Meet",
-  eventInvited: "Event: Diundang",
-  eventConfirmed: "Event: Konfirmasi",
-  eventAttended: "Event: Hadir",
-  eventFormFilled: "Event: Isi Form",
-};
-
 // ==================== SIDEBAR MENU ====================
 export const SIDEBAR_MENU = [
   {
@@ -281,3 +260,26 @@ export const COLLECTIONS = {
   KPI: "kpi",
   KPI_ACTIVITY: "kpi_activity",
 } as const;
+
+// ==================== KPI ACTIVITY METRIC KEYS ====================
+/** Ordered list of activity metric keys untuk konsistensi rendering tabel */
+export const KPI_ACTIVITY_METRIC_KEYS = [
+  "closingSign",
+  "nkMeet",
+  "eventInvited",
+  "eventConfirmed",
+  "eventAttended",
+  "eventFormFilled",
+] as const;
+
+export type KpiActivityMetricKey = (typeof KPI_ACTIVITY_METRIC_KEYS)[number];
+
+export const KPI_ACTIVITY_METRIC_LABELS: Record<KpiActivityMetricKey, string> =
+{
+  closingSign: "Closing Sign",
+  nkMeet: "NK / Meet",
+  eventInvited: "Diundang",
+  eventConfirmed: "Konfirmasi",
+  eventAttended: "Hadir",
+  eventFormFilled: "Isi Form",
+};

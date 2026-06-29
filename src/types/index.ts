@@ -166,6 +166,8 @@ export interface EventParticipant {
   companyName: string;
   picName: string;
   attendanceStatus: ParticipantAttendance;
+  /** Apakah peserta sudah mengisi formulir event */
+  hasFilledForm?: boolean;
   notes?: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
@@ -250,40 +252,66 @@ export interface KpiRealization {
   monthlyActual: Record<string, number>;
 }
 
-// ==================== KPI ACTIVITY ====================
+// ==================== KPI AKTIVITAS ====================
 
+/**
+ * Sepasang nilai SS (Sesuai Spek) dan TS (Tidak Sesuai Spek) untuk satu metrik.
+ * Total metrik = ss + ts.
+ */
 export interface SsTsMetric {
   ss: number;
   ts: number;
 }
 
+/** Semua metrik aktivitas marketing untuk satu CCO dalam satu bulan */
 export interface KpiActivityMetrics {
+  /** Jumlah project yang berhasil sign/closing */
   closingSign: SsTsMetric;
+  /** Jumlah meeting/negosiasi (NK/Meet) */
   nkMeet: SsTsMetric;
+  /** Jumlah prospect yang diundang ke event */
   eventInvited: SsTsMetric;
+  /** Jumlah prospect yang konfirmasi kehadiran event */
   eventConfirmed: SsTsMetric;
+  /** Jumlah prospect yang hadir di event */
   eventAttended: SsTsMetric;
+  /** Jumlah peserta event yang mengisi formulir */
   eventFormFilled: SsTsMetric;
 }
 
-export interface KpiActivityEffectiveness {
-  invitationEffectiveness: number;
-  attendanceRate: number;
-  formFillRate: number;
-  closingRate: number;
-}
-
+/** Data KPI Aktivitas per CCO (termasuk data bulanan) */
 export interface KpiActivityCco {
   ccoId: string;
   ccoName: string;
+  /**
+   * Data aktivitas bulanan.
+   * Key = "YYYY-MM", value = semua metrik bulan tersebut.
+   */
   monthly: Record<string, KpiActivityMetrics>;
 }
 
+/**
+ * Dokumen KPI Aktivitas untuk satu tahun.
+ * Collection path: kpi_activity/{year}
+ */
 export interface KpiActivityYear {
-  id: string; // year string e.g. "2026"
+  id: string; // = year string, e.g. "2026"
   year: number;
+  /** Map ccoId → data aktivitas per CCO */
   ccoData: Record<string, KpiActivityCco>;
   createdBy: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
+}
+
+/** Hasil komputasi efektivitas dari data aktivitas */
+export interface KpiActivityEffectiveness {
+  /** Efektivitas Mengundang = Hadir / Diundang */
+  invitationEffectiveness: number;
+  /** Kehadiran = Hadir / Konfirmasi */
+  attendanceRate: number;
+  /** Isi Form = Isi Form / Hadir */
+  formFillRate: number;
+  /** Closing = Closing / NK Meet */
+  closingRate: number;
 }
