@@ -8,7 +8,6 @@ import {
   deleteDocument,
   getDocument,
   where,
-  orderBy,
 } from "@/lib/firebase/firestore";
 import { COLLECTIONS } from "@/lib/constants";
 import { EventParticipant, MarketingEvent, ParticipantAttendance } from "@/types";
@@ -40,24 +39,28 @@ export function useEventParticipants(eventId?: string) {
     }
   }, [eventId]);
 
-  const addParticipant = async (data: Omit<EventParticipant, "id" | "eventId" | "createdAt" | "updatedAt">) => {
+  const addParticipant = async (
+    data: Omit<EventParticipant, "id" | "eventId" | "createdAt" | "updatedAt">
+  ) => {
     if (!eventId) throw new Error("Event ID is required");
     try {
       // Get current event to update stats
       const event = await getDocument<MarketingEvent>(COLLECTIONS.EVENTS, eventId);
       if (!event) throw new Error("Event not found");
 
-      // Add participant
+      // Add participant (hasFilledForm disimpan bersama data lainnya)
       await addDocument(COLLECTIONS.PARTICIPANTS, {
         ...data,
+        hasFilledForm: data.hasFilledForm ?? false,
         eventId,
       });
 
       // Update event stats
       const newParticipantCount = (event.participantCount || 0) + 1;
-      const newAttendedCount = data.attendanceStatus === "attended"
-        ? (event.attendedCount || 0) + 1
-        : (event.attendedCount || 0);
+      const newAttendedCount =
+        data.attendanceStatus === "attended"
+          ? (event.attendedCount || 0) + 1
+          : (event.attendedCount || 0);
 
       await updateDocument(COLLECTIONS.EVENTS, eventId, {
         participantCount: newParticipantCount,
@@ -80,18 +83,23 @@ export function useEventParticipants(eventId?: string) {
   ) => {
     if (!eventId) throw new Error("Event ID is required");
     try {
-      // Update participant
+      // Update participant status
       await updateDocument(COLLECTIONS.PARTICIPANTS, participantId, {
         attendanceStatus: newStatus,
       });
 
       // Update event stats if attended status changed
-      if (oldStatus !== newStatus && (oldStatus === "attended" || newStatus === "attended")) {
+      if (
+        oldStatus !== newStatus &&
+        (oldStatus === "attended" || newStatus === "attended")
+      ) {
         const event = await getDocument<MarketingEvent>(COLLECTIONS.EVENTS, eventId);
         if (event) {
           let newAttendedCount = event.attendedCount || 0;
-          if (oldStatus === "attended" && newStatus !== "attended") newAttendedCount = Math.max(0, newAttendedCount - 1);
-          if (oldStatus !== "attended" && newStatus === "attended") newAttendedCount++;
+          if (oldStatus === "attended" && newStatus !== "attended")
+            newAttendedCount = Math.max(0, newAttendedCount - 1);
+          if (oldStatus !== "attended" && newStatus === "attended")
+            newAttendedCount++;
 
           await updateDocument(COLLECTIONS.EVENTS, eventId, {
             attendedCount: newAttendedCount,
@@ -108,7 +116,34 @@ export function useEventParticipants(eventId?: string) {
     }
   };
 
-  const removeParticipant = async (participantId: string, status: ParticipantAttendance) => {
+  /**
+   * Update field hasFilledForm seorang peserta.
+   * Dipanggil dari UI tabel peserta (toggle checkbox).
+   */
+  const updateParticipantFormStatus = async (
+    participantId: string,
+    hasFilledForm: boolean
+  ) => {
+    if (!eventId) throw new Error("Event ID is required");
+    try {
+      await updateDocument(COLLECTIONS.PARTICIPANTS, participantId, {
+        hasFilledForm,
+      });
+      toast.success(
+        hasFilledForm ? "Peserta ditandai sudah isi form" : "Status form direset"
+      );
+      await fetchParticipants();
+    } catch (error) {
+      console.error("Error updating form status:", error);
+      toast.error("Gagal memperbarui status form peserta");
+      throw error;
+    }
+  };
+
+  const removeParticipant = async (
+    participantId: string,
+    status: ParticipantAttendance
+  ) => {
     if (!eventId) throw new Error("Event ID is required");
     try {
       await deleteDocument(COLLECTIONS.PARTICIPANTS, participantId);
@@ -116,7 +151,10 @@ export function useEventParticipants(eventId?: string) {
       // Update event stats
       const event = await getDocument<MarketingEvent>(COLLECTIONS.EVENTS, eventId);
       if (event) {
-        const newParticipantCount = Math.max(0, (event.participantCount || 0) - 1);
+        const newParticipantCount = Math.max(
+          0,
+          (event.participantCount || 0) - 1
+        );
         let newAttendedCount = event.attendedCount || 0;
         if (status === "attended") {
           newAttendedCount = Math.max(0, newAttendedCount - 1);
@@ -143,6 +181,7 @@ export function useEventParticipants(eventId?: string) {
     fetchParticipants,
     addParticipant,
     updateParticipantStatus,
+    updateParticipantFormStatus,
     removeParticipant,
   };
 }

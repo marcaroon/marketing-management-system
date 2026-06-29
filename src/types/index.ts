@@ -249,3 +249,41 @@ export interface KpiRealization {
   /** Realisasi per bulan: key = "YYYY-MM", value = total (Rupiah) */
   monthlyActual: Record<string, number>;
 }
+
+// ==================== KPI ACTIVITY ====================
+
+export interface SsTsMetric {
+  ss: number;
+  ts: number;
+}
+
+export interface KpiActivityMetrics {
+  closingSign: SsTsMetric;
+  nkMeet: SsTsMetric;
+  eventInvited: SsTsMetric;
+  eventConfirmed: SsTsMetric;
+  eventAttended: SsTsMetric;
+  eventFormFilled: SsTsMetric;
+}
+
+export interface KpiActivityEffectiveness {
+  invitationEffectiveness: number;
+  attendanceRate: number;
+  formFillRate: number;
+  closingRate: number;
+}
+
+export interface KpiActivityCco {
+  ccoId: string;
+  ccoName: string;
+  monthly: Record<string, KpiActivityMetrics>;
+}
+
+export interface KpiActivityYear {
+  id: string; // year string e.g. "2026"
+  year: number;
+  ccoData: Record<string, KpiActivityCco>;
+  createdBy: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}

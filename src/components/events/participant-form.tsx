@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -34,9 +35,10 @@ interface ParticipantFormProps {
 export function ParticipantForm({ eventId, isOpen, onClose, onSuccess }: ParticipantFormProps) {
   const { prospects } = useProspects();
   const { addParticipant } = useEventParticipants(eventId);
-  
+
   const [selectedProspectId, setSelectedProspectId] = useState<string>("");
   const [attendanceStatus, setAttendanceStatus] = useState<ParticipantAttendance>("invited");
+  const [hasFilledForm, setHasFilledForm] = useState(false);
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -54,6 +56,7 @@ export function ParticipantForm({ eventId, isOpen, onClose, onSuccess }: Partici
         companyName: prospect.companyName,
         picName: prospect.picName,
         attendanceStatus,
+        hasFilledForm,
         notes,
       });
       onSuccess();
@@ -61,6 +64,7 @@ export function ParticipantForm({ eventId, isOpen, onClose, onSuccess }: Partici
       // Reset form
       setSelectedProspectId("");
       setAttendanceStatus("invited");
+      setHasFilledForm(false);
       setNotes("");
     } catch (error) {
       console.error(error);
@@ -82,9 +86,18 @@ export function ParticipantForm({ eventId, isOpen, onClose, onSuccess }: Partici
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="prospect">Prospek / Perusahaan</Label>
-              <Select value={selectedProspectId} onValueChange={(val) => { if (val) setSelectedProspectId(val); }} required>
+              <Select
+                value={selectedProspectId}
+                onValueChange={(val) => { if (val) setSelectedProspectId(val); }}
+                required
+              >
                 <SelectTrigger id="prospect">
-                  <SelectValue placeholder="Pilih prospek...">{(value: string) => { const p = prospects.find(p => p.id === value); return p ? `${p.companyName} (${p.picName})` : value; }}</SelectValue>
+                  <SelectValue placeholder="Pilih prospek...">
+                    {(value: string) => {
+                      const p = prospects.find(p => p.id === value);
+                      return p ? `${p.companyName} (${p.picName})` : value;
+                    }}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {prospects.map((prospect) => (
@@ -95,16 +108,18 @@ export function ParticipantForm({ eventId, isOpen, onClose, onSuccess }: Partici
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="grid gap-2">
               <Label htmlFor="status">Status Kehadiran</Label>
-              <Select 
-                value={attendanceStatus} 
+              <Select
+                value={attendanceStatus}
                 onValueChange={(val) => { if (val) setAttendanceStatus(val as ParticipantAttendance); }}
                 required
               >
                 <SelectTrigger id="status">
-                  <SelectValue placeholder="Pilih status...">{(value: string) => PARTICIPANT_ATTENDANCE_LABELS[value as keyof typeof PARTICIPANT_ATTENDANCE_LABELS] || value}</SelectValue>
+                  <SelectValue placeholder="Pilih status...">
+                    {(value: string) => PARTICIPANT_ATTENDANCE_LABELS[value as keyof typeof PARTICIPANT_ATTENDANCE_LABELS] || value}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {PARTICIPANT_ATTENDANCE_OPTIONS.map((opt) => (
@@ -114,6 +129,23 @@ export function ParticipantForm({ eventId, isOpen, onClose, onSuccess }: Partici
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            {/* Isi Form — hanya relevan jika peserta hadir */}
+            <div className="flex items-center gap-3 rounded-lg border border-border px-3 py-2.5">
+              <Checkbox
+                id="hasFilledForm"
+                checked={hasFilledForm}
+                onCheckedChange={(checked) => setHasFilledForm(checked === true)}
+              />
+              <div className="grid gap-0.5">
+                <Label htmlFor="hasFilledForm" className="cursor-pointer text-sm font-medium">
+                  Sudah Mengisi Formulir
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Centang jika peserta telah mengisi formulir event
+                </p>
+              </div>
             </div>
 
             <div className="grid gap-2">
