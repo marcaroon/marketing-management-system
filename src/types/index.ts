@@ -83,6 +83,9 @@ export interface Prospect {
   followUp2?: FollowUp;
   followUp3?: FollowUp;
 
+  // Nilai Kontrak (diisi saat status = closing)
+  contractValue?: number;
+
   // Metadata
   tags?: string[];
   priority?: ProspectPriority;
@@ -114,6 +117,7 @@ export interface Client {
   serviceStatus: ServiceStatus;
   projectDeadline: Timestamp;
   serviceNotes: string;
+  contractValue?: number;
 
   createdBy: string;
   createdAt: Timestamp;
@@ -194,4 +198,54 @@ export interface CompanySettings {
 export interface NotificationSettings {
   followUpReminderEnabled: boolean;
   followUpReminderDays: number;
+}
+
+// ==================== KPI ====================
+
+/**
+ * Mode distribusi target KPI:
+ *   "top_down"   – total tahunan ditetapkan oleh admin, target per-CCO dihitung otomatis (rata-rata)
+ *   "bottom_up"  – target per-CCO diinput individual, total tahunan = jumlah semua target individual
+ */
+export type KpiDistributionMode = "top_down" | "bottom_up";
+
+/**
+ * Target KPI per CCO (marketing user) dalam satu tahun.
+ * Disimpan sebagai sub-map di dalam KpiYear.
+ */
+export interface KpiCcoTarget {
+  ccoId: string;
+  ccoName: string;
+  /** Target tahunan untuk CCO ini (dalam Rupiah) */
+  annualTarget: number;
+  /** Override per bulan: key = "YYYY-MM", value = target (Rupiah).
+   *  Jika key tidak ada, target bulanan = annualTarget / 12. */
+  monthlyOverrides: Record<string, number>;
+}
+
+/**
+ * Dokumen KPI untuk satu tahun.
+ * Collection path: kpi/{year}
+ */
+export interface KpiYear {
+  id: string; // = year string, e.g. "2026"
+  year: number;
+  /** Total target omzet tahunan perusahaan */
+  annualTarget: number;
+  distributionMode: KpiDistributionMode;
+  /** Map ccoId → target per CCO */
+  ccoTargets: Record<string, KpiCcoTarget>;
+  createdBy: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+/** Data realisasi omzet yang dihitung dari prospect closing */
+export interface KpiRealization {
+  ccoId: string;
+  ccoName: string;
+  /** Total realisasi tahunan */
+  annualActual: number;
+  /** Realisasi per bulan: key = "YYYY-MM", value = total (Rupiah) */
+  monthlyActual: Record<string, number>;
 }

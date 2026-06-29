@@ -38,7 +38,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, ArrowRightLeft } from "lucide-react";
+import { Loader2, ArrowRightLeft, TrendingUp } from "lucide-react";
 
 interface ConvertToClientDialogProps {
   prospect: Prospect;
@@ -73,6 +73,7 @@ export function ConvertToClientDialog({
       serviceStatus: "on_progress",
       projectDeadline: "",
       serviceNotes: "",
+      contractValue: prospect.contractValue ?? undefined,
     },
   });
 
@@ -94,6 +95,7 @@ export function ConvertToClientDialog({
         serviceStatus: data.serviceStatus,
         projectDeadline: toTimestamp(new Date(data.projectDeadline)),
         serviceNotes: data.serviceNotes || "",
+        contractValue: data.contractValue,
         createdBy: user.uid,
       } as any);
 
@@ -258,6 +260,41 @@ export function ConvertToClientDialog({
                 </FormItem>
               )}
             />
+
+            {/* Nilai Kontrak */}
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50/50 p-4 dark:border-emerald-900 dark:bg-emerald-950/20">
+              <p className="mb-3 flex items-center gap-2 text-sm font-medium text-emerald-800 dark:text-emerald-300">
+                <TrendingUp className="h-4 w-4" />
+                Nilai Kontrak
+              </p>
+              <FormField
+                control={form.control}
+                name="contractValue"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nilai Kontrak (Rp)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min={0}
+                        placeholder="Contoh: 50000000"
+                        {...field}
+                        value={field.value ?? ""}
+                        onChange={(e) =>
+                          field.onChange(
+                            e.target.value === "" ? undefined : Number(e.target.value)
+                          )
+                        }
+                      />
+                    </FormControl>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Nilai ini digunakan untuk perhitungan KPI omzet. Bisa diperbarui nanti.
+                    </p>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <div className="flex justify-end gap-2 pt-2">
               <Button type="button" variant="outline" onClick={onClose}>

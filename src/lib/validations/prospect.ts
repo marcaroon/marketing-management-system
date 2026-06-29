@@ -58,6 +58,9 @@ export const prospectFormSchema = z.object({
   tags: z.array(z.string()).optional(),
   priority: z.enum(["low", "medium", "high"]).optional(),
   notes: z.string().optional(),
+
+  // Nilai kontrak (diisi saat status closing)
+  contractValue: z.coerce.number().min(0).optional(),
 });
 
 export type ProspectFormValues = z.infer<typeof prospectFormSchema>;

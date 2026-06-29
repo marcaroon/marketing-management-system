@@ -1,6 +1,6 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { prospectFormSchema, type ProspectFormValues } from "@/lib/validations/prospect";
 import { PROSPECT_STATUS_OPTIONS, LEAD_SOURCE_OPTIONS, PRIORITY_OPTIONS, EVENT_ATTENDANCE_OPTIONS, PROSPECT_STATUS_LABELS, LEAD_SOURCE_LABELS, PRIORITY_LABELS, EVENT_ATTENDANCE_LABELS } from "@/lib/constants";
@@ -30,7 +30,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Loader2, Building2, User, Briefcase, Activity, MessageSquare } from "lucide-react";
+import { Loader2, Building2, User, Briefcase, Activity, MessageSquare, TrendingUp } from "lucide-react";
 import { UserProfile } from "@/types";
 
 interface ProspectFormProps {
@@ -73,9 +73,12 @@ export function ProspectForm({
       followUp1: { date: "", notes: "", status: "" },
       followUp2: { date: "", notes: "", status: "" },
       followUp3: { date: "", notes: "", status: "" },
+      contractValue: undefined,
       ...defaultValues,
     },
   });
+
+  const currentStatus = useWatch({ control: form.control, name: "status" });
 
   return (
     <Form {...form}>
@@ -430,6 +433,47 @@ export function ProspectForm({
             />
           </CardContent>
         </Card>
+
+        {/* Nilai Kontrak — hanya muncul saat status = closing */}
+        {currentStatus === "closing" && (
+          <Card className="border-emerald-200 bg-emerald-50/50 dark:border-emerald-900 dark:bg-emerald-950/20">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <TrendingUp className="h-4 w-4 text-emerald-600" />
+                Nilai Kontrak
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <FormField
+                control={form.control}
+                name="contractValue"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nilai Kontrak (Rp)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min={0}
+                        placeholder="Contoh: 50000000"
+                        {...field}
+                        value={field.value ?? ""}
+                        onChange={(e) =>
+                          field.onChange(
+                            e.target.value === "" ? undefined : Number(e.target.value)
+                          )
+                        }
+                      />
+                    </FormControl>
+                    <p className="text-xs text-muted-foreground">
+                      Nilai ini akan digunakan untuk perhitungan KPI omzet tim.
+                    </p>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
+        )}
 
         {/* Follow Up */}
         <Card className="border-border/50">

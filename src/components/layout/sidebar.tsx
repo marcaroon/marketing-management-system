@@ -13,6 +13,7 @@ import {
   Settings,
   ChevronLeft,
   LogOut,
+  TrendingUp,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -37,6 +38,7 @@ const iconMap: Record<string, LucideIcon> = {
   Users,
   BarChart3,
   Settings,
+  TrendingUp,
 };
 
 const menuItems = [
@@ -45,6 +47,7 @@ const menuItems = [
   { title: "Klien Aktif", href: "/clients", icon: "Building2", roles: ["admin", "marketing"] },
   { title: "Event Marketing", href: "/events", icon: "CalendarCheck", roles: ["admin", "marketing"] },
   { title: "Kalender", href: "/calendar", icon: "Calendar", roles: ["admin", "marketing"] },
+  { title: "KPI", href: "/kpi", icon: "TrendingUp", roles: ["admin", "marketing"] },
   { title: "Tim", href: "/team", icon: "Users", roles: ["admin"] },
   { title: "Laporan", href: "/reports", icon: "BarChart3", roles: ["admin"] },
   { title: "Pengaturan", href: "/settings", icon: "Settings", roles: ["admin", "marketing"] },

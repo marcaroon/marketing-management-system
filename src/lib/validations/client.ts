@@ -12,6 +12,7 @@ export const clientFormSchema = z.object({
   serviceStatus: z.enum(["on_progress", "pending", "selesai"]),
   projectDeadline: z.string().min(1, "Deadline project wajib diisi"),
   serviceNotes: z.string().optional().default(""),
+  contractValue: z.coerce.number().min(0).optional(),
 });
 
 export type ClientFormValues = z.infer<typeof clientFormSchema>;

@@ -95,6 +95,7 @@ export default function EditProspectPage() {
       notes: prospect.followUp3?.notes || "",
       status: prospect.followUp3?.status || "",
     },
+    contractValue: prospect.contractValue,
   };
 
   const handleSubmit = async (data: ProspectFormValues) => {
