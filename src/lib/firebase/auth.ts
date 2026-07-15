@@ -6,7 +6,7 @@ import {
   onAuthStateChanged,
   User,
 } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, Timestamp } from "firebase/firestore";
 import { auth, db } from "./config";
 import { UserProfile } from "@/types";
 import { COLLECTIONS } from "@/lib/constants";
@@ -64,6 +64,40 @@ export async function getUserProfile(uid: string): Promise<UserProfile | null> {
     }
     return null;
   } catch {
+    return null;
+  }
+}
+
+export async function getOrCreateUserProfile(
+  user: User,
+): Promise<UserProfile | null> {
+  try {
+    const docRef = doc(db, COLLECTIONS.USERS, user.uid);
+    const docSnap = await getDoc(docRef);
+
+    // Jika profile sudah ada, return langsung
+    if (docSnap.exists()) {
+      return { uid: docSnap.id, ...docSnap.data() } as UserProfile;
+    }
+
+    // Auto-create profile untuk first-time login
+    const newProfile: UserProfile = {
+      uid: user.uid,
+      email: user.email || "",
+      displayName: user.displayName || "User",
+      phone: "",
+      role: "marketing", // Default role
+      status: "active",
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
+    };
+
+    console.log("[AUTH] Creating user profile for:", user.uid);
+    await setDoc(docRef, newProfile);
+    console.log("[AUTH] User profile created successfully");
+    return newProfile;
+  } catch (error) {
+    console.error("[AUTH] Error in getOrCreateUserProfile:", error);
     return null;
   }
 }

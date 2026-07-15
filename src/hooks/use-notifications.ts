@@ -33,7 +33,7 @@ export function useNotifications() {
     if (!user) return;
     setIsLoading(true);
     try {
-      const data = await getDocuments<Notification>("notifications", [
+      const data = await getDocuments<Notification>(COLLECTIONS.NOTIFICATIONS, [
         where("userId", "==", user.uid),
         orderBy("createdAt", "desc"),
       ]);
@@ -48,9 +48,11 @@ export function useNotifications() {
 
   const markAsRead = async (notificationId: string) => {
     try {
-      await updateDocument("notifications", notificationId, { read: true });
+      await updateDocument(COLLECTIONS.NOTIFICATIONS, notificationId, {
+        read: true,
+      });
       setNotifications((prev) =>
-        prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n))
+        prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n)),
       );
       setUnreadCount((prev) => Math.max(0, prev - 1));
     } catch (error) {
@@ -62,7 +64,9 @@ export function useNotifications() {
     try {
       const unread = notifications.filter((n) => !n.read);
       await Promise.all(
-        unread.map((n) => updateDocument("notifications", n.id, { read: true }))
+        unread.map((n) =>
+          updateDocument(COLLECTIONS.NOTIFICATIONS, n.id, { read: true }),
+        ),
       );
       setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
       setUnreadCount(0);
@@ -79,7 +83,7 @@ export function useNotifications() {
     link?: string;
   }) => {
     try {
-      await addDocument("notifications", {
+      await addDocument(COLLECTIONS.NOTIFICATIONS, {
         ...data,
         read: false,
       });

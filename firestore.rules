@@ -1,0 +1,130 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ─── Helper Functions ───────────────────────────────────────────
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuth() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function isOwner(userId) {
+      return isAuth() && request.auth.uid == userId;
+    }
+
+    function isCreator(createdBy) {
+      return isAuth() && request.auth.uid == createdBy;
+    }
+
+    function canEditDocument(createdBy) {
+      return isAdmin() || isCreator(createdBy);
+    }
+
+    // ─── Users Collection ───────────────────────────────────────────
+    // User dapat read/write profile mereka sendiri
+    match /users/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow write: if isOwner(uid);
+      allow create: if isAuth();
+    }
+
+    // ─── Prospects Collection ────────────────────────────────────────
+    // Authenticated user bisa read dan create
+    // Edit/delete hanya creator atau admin
+    match /prospects/{prospectId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update: if isAuth() && canEditDocument(resource.data.createdBy);
+      allow delete: if isAuth() && canEditDocument(resource.data.createdBy);
+    }
+
+    // ─── Clients Collection ──────────────────────────────────────────
+    // Authenticated user bisa read dan create
+    // Edit/delete hanya creator atau admin
+    match /clients/{clientId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update: if isAuth() && canEditDocument(resource.data.createdBy);
+      allow delete: if isAuth() && canEditDocument(resource.data.createdBy);
+
+      // ─── Client Subcollection: Timeline ─────────────────────────
+      match /timeline/{timelineId} {
+        allow read, write: if isAuth();
+      }
+    }
+
+    // ─── Events Collection ───────────────────────────────────────────
+    // Authenticated user bisa read dan create
+    // Edit/delete hanya creator atau admin
+    match /events/{eventId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update: if isAuth() && canEditDocument(resource.data.createdBy);
+      allow delete: if isAuth() && canEditDocument(resource.data.createdBy);
+    }
+
+    // ─── Participants Collection ─────────────────────────────────────
+    // Participants linked to events
+    match /participants/{participantId} {
+      allow read, create: if isAuth();
+      allow update: if isAuth();
+      allow delete: if isAuth() && (isAdmin() || isOwner(resource.data.userId));
+    }
+
+    // ─── Activities Collection ───────────────────────────────────────
+    // All authenticated users can view activities
+    // Only the creator can update their own activities
+    match /activities/{activityId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update: if isAuth() && isOwner(resource.data.userId);
+      allow delete: if isAuth() && (isOwner(resource.data.userId) || isAdmin());
+    }
+
+    // ─── Notifications Collection ────────────────────────────────────
+    // Users can read, create, and update their own notifications
+    match /notifications/{notificationId} {
+      allow read: if isAuth() && isOwner(resource.data.userId);
+      allow create: if isAuth();
+      allow update: if isAuth() && isOwner(resource.data.userId);
+      allow delete: if isAuth() && (isOwner(resource.data.userId) || isAdmin());
+    }
+
+    // ─── Settings Collection ────────────────────────────────────────
+    // Authenticated users can read settings
+    // Only admins can write to settings
+    match /settings/{settingId} {
+      allow read: if isAuth();
+      allow write: if isAdmin();
+    }
+
+    // ─── Timeline Collection (Top-level) ────────────────────────────
+    // Authenticated users can read and write timeline entries
+    match /timeline/{timelineId} {
+      allow read, write: if isAuth();
+    }
+
+    // ─── KPI Collection ─────────────────────────────────────────────
+    // All authenticated users can read KPI data
+    // Only admins can write KPI data
+    match /kpi/{kpiId} {
+      allow read: if isAuth();
+      allow write: if isAdmin();
+    }
+
+    // ─── KPI Activity Collection ────────────────────────────────────
+    // All authenticated users can read KPI activity
+    // Only admins can write KPI activity
+    match /kpi_activity/{kpiActivityId} {
+      allow read: if isAuth();
+      allow write: if isAdmin();
+    }
+
+    // ─── Deny all other reads/writes ────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
